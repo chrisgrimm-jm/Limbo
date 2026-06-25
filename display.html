@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Limbo — Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:#080808;color:#fff;font-family:'DM Mono',monospace;display:flex;flex-direction:column;}
+
+/* ── TOP BAR ── */
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 32px;background:#080808;
+  border-bottom:1px solid #161616;
+  flex-shrink:0;
+}
+.top-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:4px;color:#fff;}
+.top-logo span{color:#e63946;}
+.top-stat{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:#444;text-align:center;flex:1;}
+.top-stat.live{color:#fff;}
+.top-meta{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#333;text-align:right;min-width:130px;}
+
+/* ── WAITING STATE ── */
+#waitingScreen{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;
+}
+.waiting-title{font-family:'Bebas Neue',sans-serif;font-size:72px;letter-spacing:6px;color:#1a1a1a;}
+.waiting-title span{color:#2a2a2a;}
+.waiting-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#2a2a2a;}
+.waiting-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#333;margin:0 3px;animation:pulse 1.6s ease-in-out infinite;}
+.waiting-dot:nth-child(2){animation-delay:0.3s;}.waiting-dot:nth-child(3){animation-delay:0.6s;}
+@keyframes pulse{0%,100%{opacity:0.2;}50%{opacity:1;}}
+
+/* ── GAME SCREEN ── */
+#gameScreen{flex:1;display:none;flex-direction:column;overflow:hidden;}
+
+/* Constraint banner */
+.constraint-banner{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  padding:0;background:#0f0f0f;border-bottom:1px solid #161616;
+  flex-shrink:0;
+}
+.cb-half{
+  display:flex;align-items:center;gap:10px;padding:10px 24px;
+}
+.cb-half.cb-p2{justify-content:flex-end;}
+.cb-sep{width:1px;background:#161616;margin:8px 0;}
+.cb-pname{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:#444;}
+.cb-half.cb-p1 .cb-pname{color:#e63946;}
+.cb-half.cb-p2 .cb-pname{color:#3b82f6;}
+.cb-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#333;}
+.cb-value{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;color:#fff;line-height:1;transition:all 0.4s;}
+.cb-half.cb-p1 .cb-value{color:#e63946;}
+.cb-half.cb-p2 .cb-value{color:#3b82f6;}
+.cb-suffix{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#333;}
+
+/* Turn indicator strip */
+.turn-strip{
+  display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:2px solid #0f0f0f;
+  flex-shrink:0;
+}
+.ts-half{
+  padding:10px 24px;display:flex;align-items:center;gap:12px;
+  background:#0c0c0c;transition:background 0.4s;
+  position:relative;overflow:hidden;
+}
+.ts-half::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;transition:background 0.4s;}
+.ts-half.active{background:#140406;}
+.ts-half.active::before{background:#e63946;}
+.ts-half.p2.active{background:#04081a;}
+.ts-half.p2.active::before{background:#3b82f6;}
+.ts-half + .ts-half{border-left:1px solid #111;}
+.ts-dot{width:8px;height:8px;border-radius:50%;background:#222;flex-shrink:0;transition:all 0.4s;}
+.ts-half.active .ts-dot{background:#e63946;box-shadow:0 0 8px #e63946;}
+.ts-half.p2.active .ts-dot{background:#3b82f6;box-shadow:0 0 8px #3b82f6;}
+.ts-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#333;transition:color 0.4s;}
+.ts-half.active .ts-name{color:#fff;}
+.ts-picks{font-size:10px;letter-spacing:1px;color:#2a2a2a;margin-left:auto;transition:color 0.4s;}
+.ts-half.active .ts-picks{color:#555;}
+.ts-arrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#e63946;display:none;animation:fadeIn 0.3s ease;}
+.ts-half.active .ts-arrow{display:block;}
+.ts-half.p2.active .ts-arrow{color:#3b82f6;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
+
+/* ── MAIN TWO-COLUMN ── */
+.columns{
+  flex:1;display:grid;grid-template-columns:1fr 1fr;
+  overflow:hidden;
+}
+.column{
+  display:flex;flex-direction:column;overflow:hidden;
+  position:relative;
+}
+.column + .column{border-left:1px solid #111;}
+
+/* Column header */
+.col-header{
+  padding:14px 24px 12px;border-bottom:1px solid #111;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.col-header-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.col-strikes{font-size:16px;letter-spacing:4px;transition:color 0.3s;}
+.column .col-strikes{color:#333;}
+.column.active .col-strikes{color:#555;}
+.col-player-name{
+  font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:#333;
+  transition:color 0.4s;
+}
+.column.active .col-player-name{color:#fff;}
+.column.p2.active .col-player-name{color:#fff;}
+.col-pick-count{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#222;
+  transition:color 0.4s;
+}
+.column.active .col-pick-count{color:#e63946;}
+.column.p2.active .col-pick-count{color:#3b82f6;}
+
+/* Entry list */
+.entry-list{
+  flex:1;overflow-y:auto;padding:12px 0;
+  scrollbar-width:thin;scrollbar-color:#1a1a1a #0c0c0c;
+}
+.entry-list::-webkit-scrollbar{width:4px;}
+.entry-list::-webkit-scrollbar-track{background:#0c0c0c;}
+.entry-list::-webkit-scrollbar-thumb{background:#1a1a1a;border-radius:2px;}
+
+/* The pick card */
+.pick-card{
+  padding:14px 24px;margin:0 16px 8px;
+  border-radius:5px;border:1px solid #161616;background:#0f0f0f;
+  display:flex;align-items:center;gap:14px;
+}
+.pick-card.new-p1{animation:revealP1 0.5s cubic-bezier(0.22,1,0.36,1) forwards;}
+.pick-card.new-p2{animation:revealP2 0.5s cubic-bezier(0.22,1,0.36,1) forwards;}
+.pick-card.bust{animation:revealBust 0.5s cubic-bezier(0.22,1,0.36,1) forwards;border-color:#3a1010;background:#120808;}
+
+@keyframes revealP1{
+  0%{opacity:0;transform:translateX(-40px) scale(0.95);border-color:#e63946;background:#200a0c;}
+  60%{border-color:#e63946;background:#180608;}
+  100%{opacity:1;transform:translateX(0) scale(1);border-color:#1e1e1e;background:#0f0f0f;}
+}
+@keyframes revealP2{
+  0%{opacity:0;transform:translateX(40px) scale(0.95);border-color:#3b82f6;background:#04102a;}
+  60%{border-color:#3b82f6;background:#060e20;}
+  100%{opacity:1;transform:translateX(0) scale(1);border-color:#1e1e1e;background:#0f0f0f;}
+}
+@keyframes revealBust{
+  0%{opacity:0;transform:scale(0.9);border-color:#e63946;background:#200808;}
+  40%{transform:scale(1.03);}
+  100%{opacity:1;transform:scale(1);border-color:#3a1010;background:#120808;}
+}
+
+.pick-num{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;
+  color:#2a2a2a;min-width:22px;flex-shrink:0;
+}
+.pick-name{font-size:15px;color:#ccc;flex:1;letter-spacing:0.2px;}
+.pick-val{
+  font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;
+  color:#e63946;flex-shrink:0;
+}
+.column.p2 .pick-val{color:#3b82f6;}
+.pick-card.bust .pick-name{color:#e63946;}
+.pick-card.bust .pick-val{color:#e63946;}
+.bust-x{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#e63946;flex-shrink:0;}
+
+/* Empty column state */
+.col-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;gap:10px;padding:40px;
+}
+.col-empty-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#1e1e1e;}
+
+/* ── GAME OVER OVERLAY ── */
+#gameOverOverlay{
+  position:fixed;inset:0;background:rgba(8,8,8,0.92);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;gap:10px;
+  animation:goFadeIn 0.6s ease;
+}
+@keyframes goFadeIn{from{opacity:0;}to{opacity:1;}}
+.go-label{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#555;}
+.go-title{font-family:'Bebas Neue',sans-serif;font-size:80px;letter-spacing:4px;color:#e63946;line-height:1;animation:goPop 0.6s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes goPop{0%{transform:scale(0.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.go-winner-name{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:#fff;animation:goPop 0.6s 0.2s cubic-bezier(0.34,1.56,0.64,1) both;}
+.go-wins{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:#555;animation:goPop 0.6s 0.35s both;}
+.go-chain{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#333;margin-top:20px;}
+
+/* Bust flash overlay on column */
+.bust-flash{
+  position:absolute;inset:0;background:rgba(230,57,70,0.15);
+  pointer-events:none;animation:bustFlash 0.6s ease forwards;
+  z-index:10;
+}
+@keyframes bustFlash{0%{opacity:1;}100%{opacity:0;}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-logo">LIMBO <span>//</span></div>
+  <div class="top-stat" id="topStat">WAITING FOR HOST</div>
+  <div class="top-meta" id="topMeta">Jomboy Media</div>
+</div>
+
+<!-- WAITING -->
+<div id="waitingScreen">
+  <div class="waiting-title">LIMBO <span>↓</span></div>
+  <div class="waiting-sub">
+    <span class="waiting-dot"></span>
+    <span class="waiting-dot"></span>
+    <span class="waiting-dot"></span>
+    &nbsp; Waiting for host
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen">
+  <!-- Constraint banner — one limit per player -->
+  <div class="constraint-banner">
+    <div class="cb-half cb-p1">
+      <span class="cb-pname" id="cbName0">—</span>
+      <span class="cb-label">next must be</span>
+      <span class="cb-value" id="cbValue0">ANY</span>
+      <span class="cb-suffix" id="cbSuffix0"></span>
+    </div>
+    <div class="cb-sep"></div>
+    <div class="cb-half cb-p2">
+      <span class="cb-pname" id="cbName1">—</span>
+      <span class="cb-label">next must be</span>
+      <span class="cb-value" id="cbValue1">ANY</span>
+      <span class="cb-suffix" id="cbSuffix1"></span>
+    </div>
+  </div>
+
+  <!-- Turn strip -->
+  <div class="turn-strip">
+    <div class="ts-half" id="ts0">
+      <div class="ts-dot"></div>
+      <div class="ts-name" id="tsName0">—</div>
+      <div class="ts-picks" id="tsPicks0">0 picks</div>
+      <div class="ts-arrow">THEIR TURN →</div>
+    </div>
+    <div class="ts-half p2" id="ts1">
+      <div class="ts-dot"></div>
+      <div class="ts-name" id="tsName1">—</div>
+      <div class="ts-picks" id="tsPicks1">0 picks</div>
+      <div class="ts-arrow">← THEIR TURN</div>
+    </div>
+  </div>
+
+  <!-- Two columns -->
+  <div class="columns">
+    <div class="column" id="col0">
+      <div class="col-header">
+        <div class="col-player-name" id="colName0">—</div>
+        <div class="col-header-right">
+          <div class="col-strikes" id="colStrikes0">⚾ ⚾ ⚾</div>
+          <div class="col-pick-count" id="colCount0">0</div>
+        </div>
+      </div>
+      <div class="entry-list" id="list0">
+        <div class="col-empty"><span class="col-empty-label">No picks yet</span></div>
+      </div>
+    </div>
+    <div class="column p2" id="col1">
+      <div class="col-header">
+        <div class="col-player-name" id="colName1">—</div>
+        <div class="col-header-right">
+          <div class="col-strikes" id="colStrikes1">⚾ ⚾ ⚾</div>
+          <div class="col-pick-count" id="colCount1">0</div>
+        </div>
+      </div>
+      <div class="entry-list" id="list1">
+        <div class="col-empty"><span class="col-empty-label">No picks yet</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER OVERLAY -->
+<div id="gameOverOverlay">
+  <div class="go-label">Game Over</div>
+  <div class="go-title">ELIMINATED</div>
+  <div class="go-winner-name" id="goWinnerName">—</div>
+  <div class="go-wins">WINS</div>
+  <div class="go-chain" id="goChainCount"></div>
+</div>
+
+<script>
+const topic = new URLSearchParams(location.search).get('topic') || '';
+
+let lastState = null;
+let lastChainLen = -1;
+let renderedP = [[], []];
+let lastBustKey = '';
+
+function applyState(state) {
+  if (!state || !state.status) return;
+
+  document.getElementById('waitingScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'flex';
+  document.getElementById('gameOverOverlay').style.display = 'none';
+
+  document.getElementById('topStat').textContent = state.statLabel || '';
+  document.getElementById('topStat').classList.add('live');
+  document.getElementById('topMeta').textContent = state.gameMeta || 'Jomboy Media';
+
+  document.getElementById('tsName0').textContent = state.p1Name;
+  document.getElementById('tsName1').textContent = state.p2Name;
+  document.getElementById('colName0').textContent = state.p1Name;
+  document.getElementById('colName1').textContent = state.p2Name;
+
+  document.getElementById('ts0').className = 'ts-half' + (state.currentTurn===0?' active':'');
+  document.getElementById('ts1').className = 'ts-half p2' + (state.currentTurn===1?' active':'');
+  document.getElementById('col0').className = 'column' + (state.currentTurn===0?' active':'');
+  document.getElementById('col1').className = 'column p2' + (state.currentTurn===1?' active':'');
+
+  document.getElementById('tsPicks0').textContent = (state.picks[0]||0) + ' pick' + (state.picks[0]===1?'':'s');
+  document.getElementById('tsPicks1').textContent = (state.picks[1]||0) + ' pick' + (state.picks[1]===1?'':'s');
+  document.getElementById('colCount0').textContent = state.picks[0]||0;
+  document.getElementById('colCount1').textContent = state.picks[1]||0;
+
+  if (state.strikes) {
+    for (let i = 0; i < 2; i++) {
+      const s = state.strikes[i] || 0;
+      const icons = Array(3).fill('⚾').map((v, j) => j < s ? '✗' : v);
+      const el = document.getElementById(`colStrikes${i}`);
+      el.textContent = icons.join(' ');
+      el.style.color = s >= 3 ? '#e63946' : s === 2 ? '#f59e0b' : '';
+    }
+  }
+
+  document.getElementById('cbName0').textContent = state.p1Name;
+  document.getElementById('cbName1').textContent = state.p2Name;
+
+  for (let i = 0; i < 2; i++) {
+    const myLast = state.lastPick && state.lastPick[i];
+    document.getElementById(`cbValue${i}`).textContent = myLast ? myLast.displayValue : 'ANY';
+    document.getElementById(`cbSuffix${i}`).textContent = myLast ? (state.limitSuffix || '') : '';
+  }
+
+  if (state.chain) {
+    const newLen = state.chain.length;
+    if (newLen > lastChainLen) {
+      for (let i = Math.max(lastChainLen, 0); i < newLen; i++) {
+        const entry = state.chain[i];
+        addPickCard(entry.turn, entry.playerName, entry.displayValue, false);
+      }
+      lastChainLen = newLen;
+    }
+  }
+
+  if (state.bustAttempt && state.status === 'active') {
+    const ba = state.bustAttempt;
+    const bustKey = `${ba.playerName}_${ba.displayValue}`;
+    if (bustKey !== lastBustKey) {
+      lastBustKey = bustKey;
+      showBustAttempt(ba.turn, ba.playerName, ba.displayValue);
+    }
+  }
+
+  if (state.status === 'gameover') {
+    showGameOver(state);
+  }
+}
+
+function addPickCard(turn, playerName, displayValue, isBust) {
+  const list = document.getElementById(`list${turn}`);
+  const empty = list.querySelector('.col-empty');
+  if (empty) empty.remove();
+
+  const idx = renderedP[turn].length + 1;
+  renderedP[turn].push({ playerName, displayValue });
+
+  const card = document.createElement('div');
+  const animCls = isBust ? 'bust' : (turn === 0 ? 'new-p1' : 'new-p2');
+  card.className = `pick-card ${animCls}`;
+  card.innerHTML = `
+    <span class="pick-num">${idx}</span>
+    <span class="pick-name">${playerName}</span>
+    ${isBust ? '<span class="bust-x">✗</span>' : ''}
+    <span class="pick-val">${displayValue}</span>
+  `;
+  list.prepend(card);
+
+  if (isBust) {
+    const col = document.getElementById(`col${turn}`);
+    const flash = document.createElement('div');
+    flash.className = 'bust-flash';
+    col.appendChild(flash);
+    setTimeout(() => flash.remove(), 700);
+  }
+}
+
+function showBustAttempt(turn, playerName, displayValue) {
+  addPickCard(turn, playerName, displayValue, true);
+}
+
+function showGameOver(state) {
+  const overlay = document.getElementById('gameOverOverlay');
+  overlay.style.display = 'flex';
+  const winName = state.winner === 0 ? state.p1Name : state.p2Name;
+  document.getElementById('goWinnerName').textContent = winName;
+  document.getElementById('goChainCount').textContent =
+    `Chain length: ${state.chain ? state.chain.length : 0}`;
+}
+
+function resetDisplay() {
+  document.getElementById('waitingScreen').style.display = 'flex';
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('gameOverOverlay').style.display = 'none';
+  document.getElementById('topStat').textContent = 'WAITING FOR HOST';
+  document.getElementById('topStat').classList.remove('live');
+  document.getElementById('list0').innerHTML = '<div class="col-empty"><span class="col-empty-label">No picks yet</span></div>';
+  document.getElementById('list1').innerHTML = '<div class="col-empty"><span class="col-empty-label">No picks yet</span></div>';
+  lastState = null; lastChainLen = -1; renderedP = [[],[]]; lastBustKey = '';
+}
+
+function handleMessage(state) {
+  if (!state || !state.status) return;
+  const ts = state.ts || 0;
+  const lastTs = lastState?.ts || 0;
+  if (ts !== 0 && ts === lastTs) return;
+  lastState = state;
+
+  if (state.status === 'reset') {
+    resetDisplay();
+    return;
+  }
+
+  if (state.chain && state.chain.length === 0 && lastChainLen > 0) {
+    renderedP = [[],[]]; lastChainLen = 0; lastBustKey = '';
+    document.getElementById('list0').innerHTML = '<div class="col-empty"><span class="col-empty-label">No picks yet</span></div>';
+    document.getElementById('list1').innerHTML = '<div class="col-empty"><span class="col-empty-label">No picks yet</span></div>';
+  }
+
+  applyState(state);
+}
+
+// ── ntfy.sh connection ─────────────────────────────────────────────────────────
+if (!topic) {
+  document.getElementById('topStat').textContent = 'NO TOPIC — ADD ?topic= TO URL';
+} else {
+  // On load: poll last 10 minutes of messages so OBS reconnects get current state
+  fetch('https://ntfy.sh/' + topic + '/json?poll=1&since=10m')
+    .then(r => r.text())
+    .then(text => {
+      const lines = text.trim().split('\n').filter(Boolean);
+      if (!lines.length) return;
+      // Use the last (most recent) message
+      try {
+        const msg = JSON.parse(lines[lines.length - 1]);
+        if (msg.message) handleMessage(JSON.parse(msg.message));
+      } catch {}
+    })
+    .catch(() => {});
+
+  // Live updates via Server-Sent Events
+  const es = new EventSource('https://ntfy.sh/' + topic + '/sse');
+  es.addEventListener('message', e => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.message) handleMessage(JSON.parse(msg.message));
+    } catch {}
+  });
+}
+</script>
+</body>
+</html>

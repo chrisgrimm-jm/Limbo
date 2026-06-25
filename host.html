@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Limbo — Host</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0a0a;color:#fff;font-family:'DM Mono',monospace;min-height:100vh;}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid #1f1f1f;}
+.nav-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;}
+.nav-title span{color:#e63946;}
+.nav-badge{font-size:9px;letter-spacing:3px;text-transform:uppercase;background:#1a0608;border:1px solid #e63946;color:#e63946;padding:4px 10px;border-radius:3px;}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.display-link{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;text-decoration:none;border:1px solid #2a2a2a;padding:6px 14px;border-radius:3px;transition:all 0.15s;}
+.display-link:hover{color:#fff;border-color:#555;}
+
+/* TOPIC BAR */
+.topic-bar{background:#0d0d0d;border-bottom:1px solid #1a1a1a;padding:10px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.topic-bar label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#555;white-space:nowrap;}
+.topic-bar input{font-family:'DM Mono',monospace;font-size:13px;background:#111;color:#fff;border:1px solid #2a2a2a;padding:7px 11px;border-radius:4px;outline:none;width:220px;transition:border-color 0.2s;}
+.topic-bar input:focus{border-color:#e63946;}
+.obs-url-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+.obs-url-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#333;white-space:nowrap;}
+.obs-url-text{font-size:11px;font-family:'DM Mono',monospace;color:#7cb9e8;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:4px;padding:6px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
+.obs-url-text.empty{color:#333;font-style:italic;}
+.copy-btn{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;background:#1e1e1e;color:#aaa;border:none;padding:7px 14px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all 0.15s;flex-shrink:0;}
+.copy-btn:hover{background:#2a2a2a;color:#fff;}
+.copy-btn.copied{background:#1a3a1a;color:#4caf50;}
+.ntfy-status{font-size:10px;letter-spacing:1px;padding:4px 8px;border-radius:3px;white-space:nowrap;}
+.ntfy-status.ok{color:#22c55e;}
+.ntfy-status.err{color:#e63946;}
+.ntfy-status.idle{color:#444;}
+
+/* SETUP */
+#setupScreen{max-width:600px;margin:40px auto;padding:0 24px;}
+.setup-heading{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:2px;margin-bottom:4px;}
+.setup-heading span{color:#e63946;}
+.setup-sub{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:24px;}
+
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#555;margin-bottom:6px;}
+select,input[type=text]{width:100%;font-family:'DM Mono',monospace;font-size:14px;background:#111;color:#fff;border:1px solid #2a2a2a;padding:11px 13px;border-radius:4px;outline:none;transition:border-color 0.2s;appearance:none;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
+select:focus,input:focus{border-color:#e63946;}
+.players-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.start-btn{width:100%;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;background:#e63946;color:#fff;border:none;padding:13px;border-radius:4px;cursor:pointer;transition:all 0.15s;margin-top:6px;}
+.start-btn:hover{background:#c1121f;}.start-btn:active{transform:scale(0.98);}.start-btn:disabled{background:#222;color:#444;cursor:not-allowed;}
+.clear-btn{width:100%;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;background:transparent;color:#444;border:1px solid #2a2a2a;padding:11px;border-radius:4px;cursor:pointer;transition:all 0.15s;margin-top:8px;}
+.clear-btn:hover{color:#fff;border-color:#555;}
+.loading-msg{text-align:center;padding:20px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#444;display:none;}
+.load-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#e63946;margin:0 3px;animation:bounce 1s ease-in-out infinite;}
+.load-dot:nth-child(2){animation-delay:0.15s;}.load-dot:nth-child(3){animation-delay:0.3s;}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:0.3;}40%{transform:scale(1);opacity:1;}}
+.err{background:#1a0a0a;border:1px solid #3a1010;border-left:3px solid #e63946;padding:11px 14px;font-size:12px;color:#e63946;border-radius:4px;margin-top:10px;display:none;}
+select optgroup{background:#111;color:#666;font-size:10px;}
+select option{background:#111;color:#fff;}
+select option.alltime{color:#e63946;}
+
+/* GAME */
+#gameScreen{display:none;max-width:700px;margin:0 auto;padding:0 24px 60px;}
+.game-header{padding:18px 0 14px;border-bottom:1px solid #1a1a1a;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;}
+.game-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;line-height:1.1;}
+.game-title span{color:#e63946;}
+.game-meta{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-top:4px;}
+.header-btns{display:flex;gap:8px;}
+.ghost-btn{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;background:transparent;color:#444;border:1px solid #2a2a2a;padding:7px 18px;border-radius:4px;cursor:pointer;transition:all 0.15s;}
+.ghost-btn:hover{color:#fff;border-color:#555;}
+.ghost-btn.danger:hover{color:#e63946;border-color:#e63946;}
+
+/* Turn indicators */
+.turn-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.player-card{padding:12px 16px;border-radius:5px;border:1px solid #1f1f1f;background:#0f0f0f;transition:all 0.3s;position:relative;overflow:hidden;}
+.player-card.active{border-color:#e63946;background:#140406;}
+.player-card.active::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:#e63946;}
+.player-card.p2.active{border-color:#3b82f6;background:#04081a;}
+.player-card.p2.active::before{background:#3b82f6;}
+.pc-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#444;margin-bottom:3px;}
+.player-card.active .pc-label{color:#e63946;}
+.player-card.p2.active .pc-label{color:#3b82f6;}
+.pc-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:#666;}
+.player-card.active .pc-name{color:#fff;}
+.pc-info{font-size:10px;color:#333;margin-top:2px;}
+.player-card.active .pc-info{color:#555;}
+.pc-strikes{font-size:13px;margin-top:4px;letter-spacing:3px;}
+.pc-turn{font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-top:4px;display:none;}
+.player-card.active .pc-turn{display:block;color:#e63946;}
+.player-card.p2.active .pc-turn{color:#3b82f6;}
+
+/* Constraint bar */
+.constraint-bar{background:#111;border:1px solid #1f1f1f;border-radius:5px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.cb-left{font-size:11px;color:#444;line-height:1.6;}
+.cb-left .cb-must{font-size:13px;color:#fff;display:block;margin-top:2px;}
+.cb-left .cb-dir{color:#e63946;}
+.cb-right{text-align:right;}
+.cb-limit{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:#e63946;line-height:1;}
+.cb-limit-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-top:2px;}
+
+/* Guess section */
+.guess-section{background:#0f0f0f;border:1px solid #1a1a1a;border-radius:5px;padding:14px;margin-bottom:14px;}
+.gs-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#444;margin-bottom:10px;}
+.guess-bar{display:flex;gap:8px;align-items:center;}
+.autocomplete-wrap{flex:1;position:relative;}
+.guess-input{width:100%;font-family:'DM Mono',monospace;font-size:15px;background:#111;color:#fff;border:1px solid #2a2a2a;padding:11px 15px;border-radius:4px;outline:none;transition:border-color 0.2s;}
+.guess-input:focus{border-color:#555;}
+.guess-input::placeholder{color:#333;}
+.guess-input.correct{border-color:#22c55e;background:#0a1a0d;animation:fgreen 0.4s ease;}
+.guess-input.wrong{animation:shake 0.3s ease;border-color:#e63946;}
+.guess-input:disabled{opacity:0.4;cursor:not-allowed;}
+@keyframes fgreen{0%{background:#163a20;}100%{background:#0a1a0d;}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.submit-btn{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;background:#e63946;color:#fff;border:none;padding:11px 22px;border-radius:4px;cursor:pointer;transition:background 0.15s;white-space:nowrap;}
+.submit-btn:hover{background:#c1121f;}
+.submit-btn:disabled{background:#222;color:#444;cursor:not-allowed;}
+.feedback{font-size:10px;letter-spacing:1px;min-height:16px;margin-top:7px;text-transform:uppercase;}
+.feedback.good{color:#22c55e;}
+.feedback.bad{color:#e63946;}
+
+/* Autocomplete */
+.ac-list{position:absolute;top:100%;left:0;right:0;background:#161616;border:1px solid #2a2a2a;border-top:none;border-radius:0 0 4px 4px;z-index:100;max-height:200px;overflow-y:auto;display:none;}
+.ac-item{padding:9px 15px;font-size:13px;cursor:pointer;color:#888;display:flex;justify-content:space-between;align-items:center;transition:background 0.1s;}
+.ac-item:hover,.ac-item.sel{background:#222;color:#fff;}
+.ac-val{font-family:'Bebas Neue',sans-serif;font-size:13px;color:#444;}
+.ac-item:hover .ac-val,.ac-item.sel .ac-val{color:#e63946;}
+
+/* Chain log */
+.chain-log{background:#0f0f0f;border:1px solid #1a1a1a;border-radius:5px;overflow:hidden;}
+.chain-log-header{display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #1a1a1a;}
+.chain-log-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#444;}
+.chain-entries{max-height:220px;overflow-y:auto;}
+.chain-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #141414;font-size:12px;}
+.chain-row:last-child{border-bottom:none;}
+.cr-player{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#444;min-width:64px;flex-shrink:0;}
+.chain-row.p1 .cr-player{color:#888;}
+.chain-row.p2 .cr-player{color:#3b82f6;}
+.cr-name{color:#aaa;flex:1;}
+.cr-val{font-family:'Bebas Neue',sans-serif;font-size:15px;color:#555;}
+.chain-row.p1 .cr-val{color:#e63946;}
+.chain-row.p2 .cr-val{color:#3b82f6;}
+.chain-empty-msg{font-size:11px;color:#2a2a2a;text-align:center;padding:20px;letter-spacing:1px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="nav-title">LIMBO <span>HOST</span></div>
+    <div class="nav-badge">HOST CONTROL</div>
+  </div>
+  <div class="nav-right">
+    <span id="ntfyStatus" class="ntfy-status idle">ntfy: idle</span>
+    <a class="display-link" id="displayLink" href="display.html" target="_blank">Open Display ↗</a>
+  </div>
+</nav>
+
+<!-- TOPIC BAR -->
+<div class="topic-bar">
+  <label>ntfy Topic</label>
+  <input type="text" id="topicInput" placeholder="e.g. jomboy-limbo-2026" autocomplete="off" spellcheck="false"/>
+  <div class="obs-url-wrap">
+    <span class="obs-url-label">Display URL →</span>
+    <div class="obs-url-text empty" id="obsUrl">Enter a topic to generate URL</div>
+    <button class="copy-btn" id="copyBtn" onclick="copyUrl()">Copy</button>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setupScreen">
+  <div style="margin-top:40px;">
+    <div class="setup-heading">GAME <span>SETUP</span></div>
+    <div class="setup-sub">Configure the round, then open the display screen</div>
+  </div>
+
+  <div class="players-row">
+    <div class="form-group" style="margin-bottom:0;">
+      <label>Player 1 Name</label>
+      <input id="p1Name" type="text" value="Player 1" placeholder="Player 1"/>
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label>Player 2 Name</label>
+      <input id="p2Name" type="text" value="Player 2" placeholder="Player 2"/>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Player Type</label>
+    <select id="groupSel" onchange="updateStats()">
+      <option value="hitting">Hitters</option>
+      <option value="pitching">Pitchers</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Stat Category</label>
+    <select id="statSel"></select>
+  </div>
+
+  <div class="form-group">
+    <label>Season</label>
+    <select id="seasonSel" onchange="onSeasonChange()">
+      <option value="career" class="alltime">⭐ All-Time (Career)</option>
+      <optgroup label="2020s">
+        <option value="2025">2025</option><option value="2024" selected>2024</option>
+        <option value="2023">2023</option><option value="2022">2022</option>
+        <option value="2021">2021</option><option value="2020">2020</option>
+      </optgroup>
+      <optgroup label="2010s">
+        <option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option>
+        <option value="2016">2016</option><option value="2015">2015</option><option value="2014">2014</option>
+        <option value="2013">2013</option><option value="2012">2012</option><option value="2011">2011</option>
+        <option value="2010">2010</option>
+      </optgroup>
+      <optgroup label="2000s">
+        <option value="2009">2009</option><option value="2008">2008</option><option value="2007">2007</option>
+        <option value="2006">2006</option><option value="2005">2005</option><option value="2004">2004</option>
+        <option value="2003">2003</option><option value="2002">2002</option><option value="2001">2001</option>
+        <option value="2000">2000</option>
+      </optgroup>
+      <optgroup label="1990s">
+        <option value="1999">1999</option><option value="1998">1998</option><option value="1997">1997</option>
+        <option value="1996">1996</option><option value="1995">1995</option><option value="1994">1994</option>
+        <option value="1993">1993</option><option value="1992">1992</option><option value="1991">1991</option>
+        <option value="1990">1990</option>
+      </optgroup>
+      <optgroup label="1980s">
+        <option value="1989">1989</option><option value="1988">1988</option><option value="1987">1987</option>
+        <option value="1986">1986</option><option value="1985">1985</option><option value="1984">1984</option>
+        <option value="1983">1983</option><option value="1982">1982</option><option value="1981">1981</option>
+        <option value="1980">1980</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <div class="form-group" id="poolGroup">
+    <label>Qualifier</label>
+    <select id="poolSel">
+      <option value="ALL">All players</option>
+      <option value="Qualified">Qualified only</option>
+    </select>
+  </div>
+
+  <button class="start-btn" id="startBtn" onclick="startGame()">Load &amp; Start Game</button>
+  <button class="clear-btn" onclick="clearDisplay()">Clear Display Screen</button>
+  <div class="loading-msg" id="loadingMsg">
+    <span class="load-dot"></span><span class="load-dot"></span><span class="load-dot"></span>
+    &nbsp; Fetching from MLB Stats API...
+  </div>
+  <div class="err" id="setupErr"></div>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen">
+  <div class="game-header">
+    <div>
+      <div class="game-title" id="gameTitle">LIMBO</div>
+      <div class="game-meta" id="gameMeta"></div>
+    </div>
+    <div class="header-btns">
+      <button class="ghost-btn danger" onclick="confirmNewGame()">New Game</button>
+    </div>
+  </div>
+
+  <div class="turn-bar">
+    <div class="player-card" id="p1Card">
+      <div class="pc-label">Player 1</div>
+      <div class="pc-name" id="p1CardName">—</div>
+      <div class="pc-info">Picks: <span id="p1Picks">0</span></div>
+      <div class="pc-strikes" id="p1Strikes">⚾ ⚾ ⚾</div>
+      <div class="pc-turn">← THEIR TURN</div>
+    </div>
+    <div class="player-card p2" id="p2Card">
+      <div class="pc-label">Player 2</div>
+      <div class="pc-name" id="p2CardName">—</div>
+      <div class="pc-info">Picks: <span id="p2Picks">0</span></div>
+      <div class="pc-strikes" id="p2Strikes">⚾ ⚾ ⚾</div>
+      <div class="pc-turn">← THEIR TURN</div>
+    </div>
+  </div>
+
+  <div class="constraint-bar" id="constraintBar">
+    <div class="cb-left">
+      <span>Current constraint</span>
+      <span class="cb-must" id="cbMust">Name any player to start the chain</span>
+    </div>
+    <div class="cb-right">
+      <div class="cb-limit" id="cbLimit">—</div>
+      <div class="cb-limit-label" id="cbLimitLabel"></div>
+    </div>
+  </div>
+
+  <div class="guess-section">
+    <div class="gs-label">Enter Pick — <span id="whoseTurn" style="color:#fff;"></span></div>
+    <div class="guess-bar">
+      <div class="autocomplete-wrap">
+        <input class="guess-input" id="guessInput" type="text" placeholder="Type a player name..." autocomplete="off" autocorrect="off" spellcheck="false"/>
+        <div class="ac-list" id="acList"></div>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitGuess()">CONFIRM</button>
+    </div>
+    <div class="feedback" id="feedbackMsg"></div>
+  </div>
+
+  <div class="chain-log">
+    <div class="chain-log-header">
+      <span class="chain-log-title">Chain Log</span>
+      <span style="font-size:10px;color:#444;"><span id="chainCount">0</span> picks</span>
+    </div>
+    <div class="chain-entries" id="chainEntries">
+      <div class="chain-empty-msg">No picks yet</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MLB = 'https://statsapi.mlb.com/api/v1';
+const DISPLAY_BASE = 'https://chrisgrimm-jm.github.io/Limbo/display.html';
+
+const HITTING_STATS = [
+  { key:'homeRuns',         label:'Home Runs',           type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'rbi',              label:'RBI',                 type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'hits',             label:'Hits',                type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'runs',             label:'Runs Scored',         type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'stolenBases',      label:'Stolen Bases',        type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'strikeOuts',       label:'Strikeouts (Batter)', type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'baseOnBalls',      label:'Walks',               type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'doubles',          label:'Doubles',             type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'triples',          label:'Triples',             type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'totalBases',       label:'Total Bases',         type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'plateAppearances', label:'Plate Appearances',   type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'avg',              label:'Batting Average',     type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+  { key:'ops',              label:'OPS',                 type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+  { key:'slg',              label:'Slugging %',          type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+  { key:'obp',              label:'On-Base %',           type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+];
+
+const PITCHING_STATS = [
+  { key:'strikeOuts',         label:'Strikeouts',      type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'wins',               label:'Wins',            type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'saves',              label:'Saves',           type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'homeRuns',           label:'HR Allowed',      type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'baseOnBalls',        label:'Walks Allowed',   type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'hits',               label:'Hits Allowed',    type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'gamesStarted',       label:'Games Started',   type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'losses',             label:'Losses',          type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'era',                label:'ERA',             type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
+  { key:'whip',               label:'WHIP',            type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
+];
+
+let allPlayers = [], statDef = null;
+let chain = [];
+let lastPick = [null, null];
+let usedNames = new Set();
+let currentTurn = 0, picks = [0,0], strikes = [0,0];
+let p1Name = 'Player 1', p2Name = 'Player 2';
+let acIdx = -1;
+
+// ── Topic / ntfy ───────────────────────────────────────────────────────────────
+const topicInput = document.getElementById('topicInput');
+const obsUrlEl   = document.getElementById('obsUrl');
+const statusEl   = document.getElementById('ntfyStatus');
+
+topicInput.value = localStorage.getItem('limbo-topic') || '';
+updateObsUrl();
+
+topicInput.addEventListener('input', () => {
+  localStorage.setItem('limbo-topic', topicInput.value.trim());
+  updateObsUrl();
+});
+
+function getTopic() { return topicInput.value.trim(); }
+
+function updateObsUrl() {
+  const t = getTopic();
+  if (t) {
+    const url = DISPLAY_BASE + '?topic=' + encodeURIComponent(t);
+    obsUrlEl.textContent = url;
+    obsUrlEl.classList.remove('empty');
+    document.getElementById('displayLink').href = url;
+  } else {
+    obsUrlEl.textContent = 'Enter a topic to generate URL';
+    obsUrlEl.classList.add('empty');
+    document.getElementById('displayLink').href = 'display.html';
+  }
+}
+
+function copyUrl() {
+  const t = getTopic(); if (!t) return;
+  const url = DISPLAY_BASE + '?topic=' + encodeURIComponent(t);
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+async function publish(state) {
+  const topic = getTopic();
+  if (!topic) return;
+  statusEl.textContent = 'ntfy: sending…'; statusEl.className = 'ntfy-status idle';
+  try {
+    const r = await fetch('https://ntfy.sh/' + topic, {
+      method: 'POST',
+      body: JSON.stringify(state)
+    });
+    if (r.ok) {
+      statusEl.textContent = 'ntfy: sent ✓'; statusEl.className = 'ntfy-status ok';
+      setTimeout(() => { statusEl.textContent = 'ntfy: idle'; statusEl.className = 'ntfy-status idle'; }, 2000);
+    } else {
+      statusEl.textContent = 'ntfy: error ' + r.status; statusEl.className = 'ntfy-status err';
+    }
+  } catch(e) {
+    statusEl.textContent = 'ntfy: offline'; statusEl.className = 'ntfy-status err';
+  }
+}
+
+// ── Stats setup ────────────────────────────────────────────────────────────────
+function updateStats() {
+  const g = document.getElementById('groupSel').value;
+  const list = g === 'hitting' ? HITTING_STATS : PITCHING_STATS;
+  const isCareer = document.getElementById('seasonSel').value === 'career';
+  const sel = document.getElementById('statSel');
+  sel.innerHTML = list.filter(s => !isCareer || s.careerOk)
+    .map(s => `<option value="${list.indexOf(s)}">${s.label}</option>`).join('');
+}
+function onSeasonChange() {
+  document.getElementById('poolGroup').style.display =
+    document.getElementById('seasonSel').value === 'career' ? 'none' : '';
+  updateStats();
+}
+updateStats();
+
+function statOrder() { return statDef.order || 'desc'; }
+function mustBeLower(prev, next) {
+  return statOrder() === 'asc' ? next > prev : next < prev;
+}
+function dirWord() { return statOrder() === 'asc' ? 'higher' : 'lower'; }
+function limitSuffix() { return statOrder() === 'asc' ? 'or higher' : 'or lower'; }
+
+async function fetchPlayers(group, sd, season, pool) {
+  const isCareer = season === 'career';
+  const order = sd.order || 'desc';
+  const playerPool = isCareer ? 'ALL' : (sd.pool || pool || 'ALL');
+  const statType = isCareer ? 'career' : sd.type;
+  const params = new URLSearchParams({ stats:statType, group, gameType:'R', playerPool, limit:250, sortStat:sd.key, order });
+  if (!isCareer) params.set('season', season);
+  const r = await fetch(`${MLB}/stats?${params}`);
+  if (!r.ok) throw new Error(`MLB API error ${r.status}`);
+  const d = await r.json();
+  const splits = d.stats?.[0]?.splits;
+  if (!splits?.length) throw new Error('No data returned.');
+  return splits.map(s => ({
+    name: s.player?.fullName || '?',
+    nameLower: (s.player?.fullName || '').toLowerCase(),
+    rawValue: sd.fmt(s.stat[sd.key]),
+    displayValue: sd.disp(s.stat[sd.key]),
+  }));
+}
+
+async function startGame() {
+  const group = document.getElementById('groupSel').value;
+  const list = group === 'hitting' ? HITTING_STATS : PITCHING_STATS;
+  const idx = parseInt(document.getElementById('statSel').value);
+  statDef = list[idx];
+  const season = document.getElementById('seasonSel').value;
+  const pool = document.getElementById('poolSel').value;
+
+  p1Name = document.getElementById('p1Name').value.trim() || 'Player 1';
+  p2Name = document.getElementById('p2Name').value.trim() || 'Player 2';
+
+  const btn = document.getElementById('startBtn');
+  const loading = document.getElementById('loadingMsg');
+  const errEl = document.getElementById('setupErr');
+  btn.disabled = true; loading.style.display = 'block'; errEl.style.display = 'none';
+
+  try {
+    allPlayers = await fetchPlayers(group, statDef, season, pool);
+    chain = []; lastPick = [null, null]; usedNames = new Set(); currentTurn = 0; picks = [0,0]; strikes = [0,0];
+
+    const seasonLabel = season === 'career' ? 'All-Time (Career)' : season;
+    document.getElementById('gameTitle').textContent = `LIMBO — ${statDef.label}`;
+    document.getElementById('gameMeta').textContent = `${seasonLabel} · ${group === 'hitting' ? 'Hitters' : 'Pitchers'}`;
+    document.getElementById('p1CardName').textContent = p1Name;
+    document.getElementById('p2CardName').textContent = p2Name;
+
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'block';
+    document.getElementById('guessInput').value = '';
+    document.getElementById('guessInput').disabled = false;
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('feedbackMsg').textContent = '';
+
+    renderTurns(); renderStrikes(); renderChainLog(); updateConstraintBar();
+    pushState('active');
+    document.getElementById('guessInput').focus();
+  } catch(e) {
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Load & Start Game';
+  loading.style.display = 'none';
+}
+
+// ── Normalize / Match ──────────────────────────────────────────────────────────
+function norm(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9\s]/g,'').trim();
+}
+function isMatch(guess, p) {
+  const g = norm(guess), full = norm(p.name);
+  if (full === g) return true;
+  const tokens = full.split(/\s+/), last = tokens[tokens.length-1];
+  if (last.length >= 4 && last === g) return true;
+  const ns = tokens.filter(t => !['jr','sr','ii','iii','iv'].includes(t));
+  if (ns.join(' ') === g) return true;
+  if (ns[ns.length-1]?.length >= 4 && ns[ns.length-1] === g) return true;
+  return false;
+}
+
+// ── Autocomplete ───────────────────────────────────────────────────────────────
+function updateAC(val) {
+  const list = document.getElementById('acList'); acIdx = -1;
+  if (!val || val.length < 2) { list.style.display = 'none'; return; }
+  const g = norm(val);
+  const matches = allPlayers.filter(p => norm(p.name).includes(g)).slice(0, 8);
+  if (!matches.length) { list.style.display = 'none'; return; }
+  list.innerHTML = matches.map(p =>
+    `<div class="ac-item" data-name="${p.name.replace(/"/g,'&quot;')}" onclick="pickAC('${p.name.replace(/'/g,"\\'")}')">
+      <span>${p.name}</span><span class="ac-val">${p.displayValue}</span>
+    </div>`).join('');
+  list.style.display = 'block';
+}
+function pickAC(name) {
+  document.getElementById('guessInput').value = name;
+  document.getElementById('acList').style.display = 'none';
+  document.getElementById('guessInput').focus();
+}
+function hideAC() { setTimeout(()=>{ document.getElementById('acList').style.display='none'; }, 150); }
+
+// ── Submit ─────────────────────────────────────────────────────────────────────
+function submitGuess() {
+  const inp = document.getElementById('guessInput');
+  const raw = inp.value.trim(); if (!raw) return;
+  const fb = document.getElementById('feedbackMsg');
+
+  const match = allPlayers.find(p => isMatch(raw, p));
+  if (!match) {
+    fb.textContent = `"${raw}" not found.`; fb.className = 'feedback bad';
+    shake(inp); return;
+  }
+
+  if (usedNames.has(norm(match.name))) {
+    fb.textContent = `${match.name} was already used!`; fb.className = 'feedback bad';
+    shake(inp); return;
+  }
+
+  const myLastPick = lastPick[currentTurn];
+  if (myLastPick !== null && !mustBeLower(myLastPick.rawValue, match.rawValue)) {
+    // STRIKE
+    strikes[currentTurn]++;
+    const pName = currentTurn === 0 ? p1Name : p2Name;
+    const remaining = 3 - strikes[currentTurn];
+    shake(inp);
+    inp.value = '';
+    document.getElementById('acList').style.display = 'none';
+    renderStrikes();
+
+    if (strikes[currentTurn] >= 3) {
+      fb.textContent = `STRIKE 3 — ${pName} is eliminated!`; fb.className = 'feedback bad';
+      document.getElementById('guessInput').disabled = true;
+      document.getElementById('submitBtn').disabled = true;
+      const loser = currentTurn, winner = loser === 0 ? 1 : 0;
+      pushState('active', {
+        bustAttempt: { playerName: match.name, displayValue: match.displayValue, turn: currentTurn }
+      });
+      pushState('gameover', { loser, winner });
+    } else {
+      fb.textContent = `STRIKE ${strikes[currentTurn]} — ${match.name} (${match.displayValue}) is NOT ${dirWord()} than ${pName}'s last pick of ${myLastPick.displayValue}. ${remaining} strike${remaining===1?'':'s'} left.`;
+      fb.className = 'feedback bad';
+      pushState('active', {
+        bustAttempt: { playerName: match.name, displayValue: match.displayValue, turn: currentTurn }
+      });
+      currentTurn = currentTurn === 0 ? 1 : 0;
+      renderTurns(); updateConstraintBar();
+      pushState('active');
+    }
+    return;
+  }
+
+  // Valid pick
+  usedNames.add(norm(match.name));
+  picks[currentTurn]++;
+  const entry = { playerName: match.name, rawValue: match.rawValue, displayValue: match.displayValue, turn: currentTurn };
+  chain.push(entry);
+  lastPick[currentTurn] = entry;
+
+  flash(inp, 'correct');
+  fb.textContent = `✓ ${match.name} — ${match.displayValue}`; fb.className = 'feedback good';
+  inp.value = ''; document.getElementById('acList').style.display = 'none';
+
+  document.getElementById('p1Picks').textContent = picks[0];
+  document.getElementById('p2Picks').textContent = picks[1];
+
+  currentTurn = currentTurn === 0 ? 1 : 0;
+  renderTurns(); renderChainLog(); updateConstraintBar();
+  pushState('active');
+  inp.focus();
+}
+
+function shake(el) {
+  el.classList.remove('wrong'); void el.offsetWidth; el.classList.add('wrong');
+  setTimeout(() => el.classList.remove('wrong'), 400);
+}
+function flash(el, cls) {
+  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), 600);
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function renderTurns() {
+  document.getElementById('p1Card').className = 'player-card' + (currentTurn===0?' active':'');
+  document.getElementById('p2Card').className = 'player-card p2' + (currentTurn===1?' active':'');
+  document.getElementById('whoseTurn').textContent = currentTurn===0 ? p1Name : p2Name;
+}
+
+function renderStrikes() {
+  for (let i = 0; i < 2; i++) {
+    const s = strikes[i];
+    const el = document.getElementById(`p${i+1}Strikes`);
+    const icons = Array(3).fill('⚾').map((v, j) => j < s ? '✗' : v);
+    el.textContent = icons.join(' ');
+    el.style.color = s >= 3 ? '#e63946' : s === 2 ? '#f59e0b' : '#444';
+  }
+}
+
+function updateConstraintBar() {
+  const cbMust = document.getElementById('cbMust');
+  const cbLimit = document.getElementById('cbLimit');
+  const cbLabel = document.getElementById('cbLimitLabel');
+  const myLast = lastPick[currentTurn];
+  const pName = currentTurn === 0 ? p1Name : p2Name;
+  if (!myLast) {
+    cbMust.textContent = `${pName} — first pick, no constraint`;
+    cbLimit.textContent = '—'; cbLabel.textContent = '';
+  } else {
+    cbMust.innerHTML = `${pName} must be <span class="cb-dir">${dirWord()}</span> than their last pick`;
+    cbLimit.textContent = myLast.displayValue;
+    cbLabel.textContent = limitSuffix();
+  }
+}
+
+function renderChainLog() {
+  const el = document.getElementById('chainEntries');
+  document.getElementById('chainCount').textContent = chain.length;
+  if (!chain.length) { el.innerHTML = '<div class="chain-empty-msg">No picks yet</div>'; return; }
+  el.innerHTML = [...chain].reverse().map(e => {
+    const pn = e.turn===0 ? p1Name : p2Name;
+    return `<div class="chain-row ${e.turn===0?'p1':'p2'}">
+      <span class="cr-player">${pn}</span>
+      <span class="cr-name">${e.playerName}</span>
+      <span class="cr-val">${e.displayValue}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── State push to ntfy.sh ──────────────────────────────────────────────────────
+function pushState(status, extra = {}) {
+  const state = {
+    status,
+    p1Name, p2Name,
+    statLabel: statDef.label,
+    gameMeta: document.getElementById('gameMeta').textContent,
+    chain: chain.map(e => ({ ...e })),
+    lastPick: [lastPick[0] ? {...lastPick[0]} : null, lastPick[1] ? {...lastPick[1]} : null],
+    strikes: [...strikes],
+    currentTurn,
+    picks: [...picks],
+    dirWord: dirWord(),
+    limitSuffix: limitSuffix(),
+    ...extra,
+    ts: Date.now()
+  };
+  publish(state);
+}
+
+function clearDisplay() {
+  publish({ status: 'reset', ts: Date.now() });
+}
+
+function confirmNewGame() {
+  if (confirm('Start a new game? This will reset the display.')) {
+    clearDisplay();
+    document.getElementById('gameScreen').style.display = 'none';
+    document.getElementById('setupScreen').style.display = 'block';
+    document.getElementById('guessInput').disabled = false;
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('feedbackMsg').textContent = '';
+  }
+}
+
+// ── Keyboard ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('guessInput');
+  const acList = document.getElementById('acList');
+  inp.addEventListener('input', function() { updateAC(this.value); });
+  inp.addEventListener('blur', hideAC);
+  inp.addEventListener('keydown', function(e) {
+    const items = acList.querySelectorAll('.ac-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault(); acIdx = Math.min(acIdx+1, items.length-1);
+      items.forEach((el,i) => el.classList.toggle('sel', i===acIdx));
+      if (items[acIdx]) inp.value = items[acIdx].dataset.name;
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault(); acIdx = Math.max(acIdx-1, -1);
+      items.forEach((el,i) => el.classList.toggle('sel', i===acIdx));
+      if (acIdx >= 0 && items[acIdx]) inp.value = items[acIdx].dataset.name;
+    } else if (e.key === 'Enter') {
+      if (acIdx >= 0 && items[acIdx]) {
+        inp.value = items[acIdx].dataset.name;
+        acList.style.display = 'none'; acIdx = -1;
+      } else { submitGuess(); }
+    } else if (e.key === 'Escape') { acList.style.display = 'none'; acIdx = -1; }
+  });
+});
+</script>
+</body>
+</html>
