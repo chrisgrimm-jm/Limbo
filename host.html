@@ -462,24 +462,38 @@ function mustBeLower(prev, next) {
 function dirWord() { return statOrder() === 'asc' ? 'higher' : 'lower'; }
 function limitSuffix() { return statOrder() === 'asc' ? 'or higher' : 'or lower'; }
 
+// Players who appear in position=C stats but played <50% of career games at catcher.
+// Verified via MLB fielding API — excludes Joe Torre, Victor Martinez, Joe Mauer, etc.
+const CATCHER_EXCLUSIONS = new Set([123406,400121,408045,119804,119986,117747,124495,113959,118305]);
+
 async function fetchPlayers(group, sd, season, pool) {
   const isCareer = season === 'career';
   const order = sd.order || 'desc';
   const playerPool = isCareer ? 'ALL' : (sd.pool || pool || 'ALL');
   const statType = isCareer ? 'career' : sd.type;
-  const params = new URLSearchParams({ stats:statType, group, gameType:'R', playerPool, limit:250, sortStat:sd.key, order });
+  const params = new URLSearchParams({ stats:statType, group, gameType:'R', playerPool, limit:1000, sortStat:sd.key, order });
   if (!isCareer) params.set('season', season);
   const r = await fetch(`${MLB}/stats?${params}`);
   if (!r.ok) throw new Error(`MLB API error ${r.status}`);
   const d = await r.json();
   const splits = d.stats?.[0]?.splits;
   if (!splits?.length) throw new Error('No data returned.');
-  return splits.map(s => ({
-    name: s.player?.fullName || '?',
-    nameLower: (s.player?.fullName || '').toLowerCase(),
-    rawValue: sd.fmt(s.stat[sd.key]),
-    displayValue: sd.disp(s.stat[sd.key]),
-  }));
+  return splits
+    .filter(s => {
+      // If filtering catchers, exclude players who spent majority of career elsewhere
+      const pos = document.getElementById('groupSel')?.value || '';
+      if (pos.includes('|C') && isCareer) {
+        return !CATCHER_EXCLUSIONS.has(s.player?.id);
+      }
+      return true;
+    })
+    .map(s => ({
+      name: s.player?.fullName || '?',
+      nameLower: (s.player?.fullName || '').toLowerCase(),
+      rawValue: sd.fmt(s.stat[sd.key]),
+      displayValue: sd.disp(s.stat[sd.key]),
+      playerId: s.player?.id,
+    }));
 }
 
 async function startGame() {
