@@ -188,8 +188,13 @@ select option.alltime{color:#e63946;}
   <div class="form-group">
     <label>Player Type</label>
     <select id="groupSel" onchange="updateStats()">
-      <option value="hitting">Hitters</option>
-      <option value="pitching">Pitchers</option>
+      <optgroup label="Special">
+        <option value="special">⭐ Curated Lists</option>
+      </optgroup>
+      <optgroup label="Standard">
+        <option value="hitting">Hitters</option>
+        <option value="pitching">Pitchers</option>
+      </optgroup>
     </select>
   </div>
 
@@ -372,7 +377,19 @@ const PITCHING_STATS = [
   { key:'hitsPer9Inn',         label:'H/9',                  type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
 ];
 
-let allPlayers = [], statDef = null;
+// ── Static curated datasets (sourced from Baseball Reference with custom qualifiers) ──
+const STATIC_DATASETS = {
+  'catchers_hr_career': {
+    label: 'Catcher HR — All-Time (50%+ games at C, min 25 GP)',
+    statLabel: 'Catcher Home Runs',
+    note: 'Career · Catchers only (50%+ games at C)',
+    players: [{"name":"Mike Piazza","nameLower":"mike piazza","rawValue":427,"displayValue":"427"},{"name":"Johnny Bench","nameLower":"johnny bench","rawValue":389,"displayValue":"389"},{"name":"Carlton Fisk","nameLower":"carlton fisk","rawValue":376,"displayValue":"376"},{"name":"Yogi Berra","nameLower":"yogi berra","rawValue":358,"displayValue":"358"},{"name":"Gary Carter","nameLower":"gary carter","rawValue":324,"displayValue":"324"},{"name":"Lance Parrish","nameLower":"lance parrish","rawValue":324,"displayValue":"324"},{"name":"Salvador Perez","nameLower":"salvador perez","rawValue":314,"displayValue":"314"},{"name":"Iván Rodríguez","nameLower":"iván rodríguez","rawValue":311,"displayValue":"311"},{"name":"Brian McCann","nameLower":"brian mccann","rawValue":282,"displayValue":"282"},{"name":"Jorge Posada","nameLower":"jorge posada","rawValue":275,"displayValue":"275"},{"name":"Roy Campanella","nameLower":"roy campanella","rawValue":260,"displayValue":"260"},{"name":"Javy López","nameLower":"javy lópez","rawValue":260,"displayValue":"260"},{"name":"Ted Simmons","nameLower":"ted simmons","rawValue":248,"displayValue":"248"},{"name":"Mickey Tettleton","nameLower":"mickey tettleton","rawValue":245,"displayValue":"245"},{"name":"Gabby Hartnett","nameLower":"gabby hartnett","rawValue":236,"displayValue":"236"},{"name":"Benito Santiago","nameLower":"benito santiago","rawValue":217,"displayValue":"217"},{"name":"Bill Dickey","nameLower":"bill dickey","rawValue":202,"displayValue":"202"},{"name":"Todd Hundley","nameLower":"todd hundley","rawValue":202,"displayValue":"202"},{"name":"Gene Tenace","nameLower":"gene tenace","rawValue":201,"displayValue":"201"},{"name":"Bill Freehan","nameLower":"bill freehan","rawValue":200,"displayValue":"200"},{"name":"Gary Sánchez","nameLower":"gary sánchez","rawValue":197,"displayValue":"197"},{"name":"Yasmani Grandal","nameLower":"yasmani grandal","rawValue":194,"displayValue":"194"},{"name":"Jason Varitek","nameLower":"jason varitek","rawValue":193,"displayValue":"193"},{"name":"Willson Contreras","nameLower":"willson contreras","rawValue":192,"displayValue":"192"},{"name":"Russell Martin","nameLower":"russell martin","rawValue":191,"displayValue":"191"},{"name":"Ernie Lombardi","nameLower":"ernie lombardi","rawValue":190,"displayValue":"190"},{"name":"A.J. Pierzynski","nameLower":"a.j. pierzynski","rawValue":188,"displayValue":"188"},{"name":"Darrell Porter","nameLower":"darrell porter","rawValue":188,"displayValue":"188"},{"name":"Mike Stanley","nameLower":"mike stanley","rawValue":187,"displayValue":"187"},{"name":"J.T. Realmuto","nameLower":"j.t. realmuto","rawValue":186,"displayValue":"186"},{"name":"Del Crandall","nameLower":"del crandall","rawValue":179,"displayValue":"179"},{"name":"Josh Gibson","nameLower":"josh gibson","rawValue":176,"displayValue":"176"},{"name":"Yadier Molina","nameLower":"yadier molina","rawValue":176,"displayValue":"176"},{"name":"Walker Cooper","nameLower":"walker cooper","rawValue":173,"displayValue":"173"},{"name":"Ramón Hernández","nameLower":"ramón hernández","rawValue":169,"displayValue":"169"},{"name":"Elston Howard","nameLower":"elston howard","rawValue":168,"displayValue":"168"},{"name":"Charles Johnson","nameLower":"charles johnson","rawValue":167,"displayValue":"167"},{"name":"Gus Triandos","nameLower":"gus triandos","rawValue":167,"displayValue":"167"},{"name":"Andy Seminick","nameLower":"andy seminick","rawValue":164,"displayValue":"164"},{"name":"Cal Raleigh","nameLower":"cal raleigh","rawValue":162,"displayValue":"162"},{"name":"Terry Steinbach","nameLower":"terry steinbach","rawValue":162,"displayValue":"162"},{"name":"Buster Posey","nameLower":"buster posey","rawValue":158,"displayValue":"158"},{"name":"Ed Bailey","nameLower":"ed bailey","rawValue":155,"displayValue":"155"},{"name":"Sherm Lollar","nameLower":"sherm lollar","rawValue":155,"displayValue":"155"},{"name":"Chris Hoiles","nameLower":"chris hoiles","rawValue":151,"displayValue":"151"},{"name":"Mike Lieberthal","nameLower":"mike lieberthal","rawValue":150,"displayValue":"150"},{"name":"Mike Zunino","nameLower":"mike zunino","rawValue":149,"displayValue":"149"},{"name":"Matt Wieters","nameLower":"matt wieters","rawValue":146,"displayValue":"146"},{"name":"Miguel Olivo","nameLower":"miguel olivo","rawValue":145,"displayValue":"145"},{"name":"Bengie Molina","nameLower":"bengie molina","rawValue":144,"displayValue":"144"},{"name":"Joe Mauer","nameLower":"joe mauer","rawValue":143,"displayValue":"143"},{"name":"Kurt Suzuki","nameLower":"kurt suzuki","rawValue":143,"displayValue":"143"},{"name":"Chris Iannetta","nameLower":"chris iannetta","rawValue":141,"displayValue":"141"},{"name":"Earl Williams","nameLower":"earl williams","rawValue":138,"displayValue":"138"},{"name":"Darren Daulton","nameLower":"darren daulton","rawValue":137,"displayValue":"137"},{"name":"Yan Gomes","nameLower":"yan gomes","rawValue":137,"displayValue":"137"},{"name":"Rod Barajas","nameLower":"rod barajas","rawValue":136,"displayValue":"136"},{"name":"Matt Nokes","nameLower":"matt nokes","rawValue":136,"displayValue":"136"},{"name":"Wilson Ramos","nameLower":"wilson ramos","rawValue":136,"displayValue":"136"},{"name":"John Buck","nameLower":"john buck","rawValue":134,"displayValue":"134"},{"name":"Tom Haller","nameLower":"tom haller","rawValue":134,"displayValue":"134"},{"name":"Will Smith","nameLower":"will smith","rawValue":134,"displayValue":"134"},{"name":"Ernie Whitt","nameLower":"ernie whitt","rawValue":134,"displayValue":"134"},{"name":"Travis d'Arnaud","nameLower":"travis d'arnaud","rawValue":130,"displayValue":"130"},{"name":"Mike Macfarlane","nameLower":"mike macfarlane","rawValue":129,"displayValue":"129"},{"name":"John Romano","nameLower":"john romano","rawValue":129,"displayValue":"129"},{"name":"Jody Davis","nameLower":"jody davis","rawValue":127,"displayValue":"127"},{"name":"Smoky Burgess","nameLower":"smoky burgess","rawValue":126,"displayValue":"126"},{"name":"Miguel Montero","nameLower":"miguel montero","rawValue":126,"displayValue":"126"},{"name":"Darrin Fletcher","nameLower":"darrin fletcher","rawValue":124,"displayValue":"124"},{"name":"Joe Ferguson","nameLower":"joe ferguson","rawValue":122,"displayValue":"122"},{"name":"Mickey Cochrane","nameLower":"mickey cochrane","rawValue":119,"displayValue":"119"},{"name":"Frankie Hayes","nameLower":"frankie hayes","rawValue":119,"displayValue":"119"},{"name":"Martín Maldonado","nameLower":"martín maldonado","rawValue":119,"displayValue":"119"},{"name":"Stan Lopata","nameLower":"stan lopata","rawValue":116,"displayValue":"116"},{"name":"Terry Kennedy","nameLower":"terry kennedy","rawValue":113,"displayValue":"113"},{"name":"Thurman Munson","nameLower":"thurman munson","rawValue":113,"displayValue":"113"},{"name":"Sandy Alomar Jr.","nameLower":"sandy alomar jr.","rawValue":112,"displayValue":"112"},{"name":"Mitch Garver","nameLower":"mitch garver","rawValue":110,"displayValue":"110"},{"name":"Jarrod Saltalamacchia","nameLower":"jarrod saltalamacchia","rawValue":110,"displayValue":"110"},{"name":"Dave Duncan","nameLower":"dave duncan","rawValue":109,"displayValue":"109"},{"name":"Shea Langeliers","nameLower":"shea langeliers","rawValue":108,"displayValue":"108"},{"name":"Jonathan Lucroy","nameLower":"jonathan lucroy","rawValue":108,"displayValue":"108"},{"name":"Geovany Soto","nameLower":"geovany soto","rawValue":108,"displayValue":"108"},{"name":"Tony Peña","nameLower":"tony peña","rawValue":107,"displayValue":"107"},{"name":"David Ross","nameLower":"david ross","rawValue":106,"displayValue":"106"},{"name":"Alex Avila","nameLower":"alex avila","rawValue":105,"displayValue":"105"},{"name":"Bob Boone","nameLower":"bob boone","rawValue":105,"displayValue":"105"},{"name":"Earl Battey","nameLower":"earl battey","rawValue":104,"displayValue":"104"},{"name":"Ryan Doumit","nameLower":"ryan doumit","rawValue":104,"displayValue":"104"},{"name":"John Roseboro","nameLower":"john roseboro","rawValue":104,"displayValue":"104"},{"name":"Joe Oliver","nameLower":"joe oliver","rawValue":102,"displayValue":"102"},{"name":"Steve Yeager","nameLower":"steve yeager","rawValue":102,"displayValue":"102"},{"name":"Duke Sims","nameLower":"duke sims","rawValue":100,"displayValue":"100"},{"name":"Michael Barrett","nameLower":"michael barrett","rawValue":98,"displayValue":"98"},{"name":"Welington Castillo","nameLower":"welington castillo","rawValue":98,"displayValue":"98"},{"name":"Ozzie Virgil","nameLower":"ozzie virgil","rawValue":98,"displayValue":"98"},{"name":"Jason Castro","nameLower":"jason castro","rawValue":97,"displayValue":"97"},{"name":"James McCann","nameLower":"james mccann","rawValue":97,"displayValue":"97"},{"name":"Tim McCarver","nameLower":"tim mccarver","rawValue":97,"displayValue":"97"},{"name":"Rick Dempsey","nameLower":"rick dempsey","rawValue":96,"displayValue":"96"},{"name":"Ron Karkovice","nameLower":"ron karkovice","rawValue":96,"displayValue":"96"},{"name":"Jason LaRue","nameLower":"jason larue","rawValue":96,"displayValue":"96"},{"name":"Wes Westrum","nameLower":"wes westrum","rawValue":96,"displayValue":"96"},{"name":"Robinson Chirinos","nameLower":"robinson chirinos","rawValue":95,"displayValue":"95"},{"name":"Jim Sundberg","nameLower":"jim sundberg","rawValue":95,"displayValue":"95"},{"name":"William Contreras","nameLower":"william contreras","rawValue":94,"displayValue":"94"},{"name":"Ed Taubensee","nameLower":"ed taubensee","rawValue":94,"displayValue":"94"},{"name":"Nick Hundley","nameLower":"nick hundley","rawValue":93,"displayValue":"93"},{"name":"Sean Murphy","nameLower":"sean murphy","rawValue":93,"displayValue":"93"},{"name":"Gene Oliver","nameLower":"gene oliver","rawValue":93,"displayValue":"93"},{"name":"Jim Hegan","nameLower":"jim hegan","rawValue":92,"displayValue":"92"},{"name":"Bob Brenly","nameLower":"bob brenly","rawValue":91,"displayValue":"91"},{"name":"Danny Jansen","nameLower":"danny jansen","rawValue":91,"displayValue":"91"},{"name":"Alan Ashby","nameLower":"alan ashby","rawValue":90,"displayValue":"90"},{"name":"Jim Pagliaroni","nameLower":"jim pagliaroni","rawValue":90,"displayValue":"90"},{"name":"Rich Gedman","nameLower":"rich gedman","rawValue":88,"displayValue":"88"},{"name":"Dan Wilson","nameLower":"dan wilson","rawValue":88,"displayValue":"88"},{"name":"Gregg Zaun","nameLower":"gregg zaun","rawValue":88,"displayValue":"88"},{"name":"Bo Díaz","nameLower":"bo díaz","rawValue":87,"displayValue":"87"},{"name":"Damian Miller","nameLower":"damian miller","rawValue":87,"displayValue":"87"},{"name":"Greg Myers","nameLower":"greg myers","rawValue":87,"displayValue":"87"},{"name":"Tyler Flowers","nameLower":"tyler flowers","rawValue":86,"displayValue":"86"},{"name":"Mike Heath","nameLower":"mike heath","rawValue":86,"displayValue":"86"},{"name":"Randy Hundley","nameLower":"randy hundley","rawValue":82,"displayValue":"82"},{"name":"Stephen Vogt","nameLower":"stephen vogt","rawValue":82,"displayValue":"82"},{"name":"John Bateman","nameLower":"john bateman","rawValue":81,"displayValue":"81"},{"name":"Johnny Edwards","nameLower":"johnny edwards","rawValue":81,"displayValue":"81"},{"name":"Rick Wilkins","nameLower":"rick wilkins","rawValue":81,"displayValue":"81"},{"name":"J.P. Arencibia","nameLower":"j.p. arencibia","rawValue":80,"displayValue":"80"},{"name":"Brad Ausmus","nameLower":"brad ausmus","rawValue":80,"displayValue":"80"},{"name":"John Flaherty","nameLower":"john flaherty","rawValue":80,"displayValue":"80"},{"name":"Ed Herrmann","nameLower":"ed herrmann","rawValue":80,"displayValue":"80"},{"name":"Paul Lo Duca","nameLower":"paul lo duca","rawValue":80,"displayValue":"80"},{"name":"Del Rice","nameLower":"del rice","rawValue":79,"displayValue":"79"},{"name":"Bob Tillman","nameLower":"bob tillman","rawValue":79,"displayValue":"79"},{"name":"Jack Clements","nameLower":"jack clements","rawValue":77,"displayValue":"77"},{"name":"Virgil Davis","nameLower":"virgil davis","rawValue":77,"displayValue":"77"},{"name":"Austin Hedges","nameLower":"austin hedges","rawValue":77,"displayValue":"77"},{"name":"Jonah Heim","nameLower":"jonah heim","rawValue":77,"displayValue":"77"},{"name":"Tim Laudner","nameLower":"tim laudner","rawValue":77,"displayValue":"77"},{"name":"Milt May","nameLower":"milt may","rawValue":77,"displayValue":"77"},{"name":"Dioner Navarro","nameLower":"dioner navarro","rawValue":77,"displayValue":"77"},{"name":"Don Slaught","nameLower":"don slaught","rawValue":77,"displayValue":"77"},{"name":"Chris Snyder","nameLower":"chris snyder","rawValue":77,"displayValue":"77"},{"name":"Dave Valle","nameLower":"dave valle","rawValue":77,"displayValue":"77"},{"name":"George Mitterwald","nameLower":"george mitterwald","rawValue":76,"displayValue":"76"},{"name":"Elias Díaz","nameLower":"elias díaz","rawValue":75,"displayValue":"75"},{"name":"Ryan Jeffers","nameLower":"ryan jeffers","rawValue":75,"displayValue":"75"},{"name":"Carson Kelly","nameLower":"carson kelly","rawValue":75,"displayValue":"75"},{"name":"Jason Kendall","nameLower":"jason kendall","rawValue":75,"displayValue":"75"},{"name":"Christian Vázquez","nameLower":"christian vázquez","rawValue":75,"displayValue":"75"},{"name":"Kyle Higashioka","nameLower":"kyle higashioka","rawValue":73,"displayValue":"73"},{"name":"Henry Blanco","nameLower":"henry blanco","rawValue":72,"displayValue":"72"},{"name":"Hunter Goodman","nameLower":"hunter goodman","rawValue":72,"displayValue":"72"},{"name":"Todd Greene","nameLower":"todd greene","rawValue":71,"displayValue":"71"},{"name":"Ron Hassey","nameLower":"ron hassey","rawValue":71,"displayValue":"71"},{"name":"Wilin Rosario","nameLower":"wilin rosario","rawValue":71,"displayValue":"71"},{"name":"Carlos Ruiz","nameLower":"carlos ruiz","rawValue":71,"displayValue":"71"},{"name":"Kelly Shoppach","nameLower":"kelly shoppach","rawValue":70,"displayValue":"70"},{"name":"Pat Borders","nameLower":"pat borders","rawValue":69,"displayValue":"69"},{"name":"Adley Rutschman","nameLower":"adley rutschman","rawValue":69,"displayValue":"69"},{"name":"Tyler Stephenson","nameLower":"tyler stephenson","rawValue":69,"displayValue":"69"},{"name":"Mike Scioscia","nameLower":"mike scioscia","rawValue":68,"displayValue":"68"},{"name":"Ramón Castro","nameLower":"ramón castro","rawValue":67,"displayValue":"67"},{"name":"Mike Matheny","nameLower":"mike matheny","rawValue":67,"displayValue":"67"},{"name":"Brian Schneider","nameLower":"brian schneider","rawValue":67,"displayValue":"67"},{"name":"Dick Dietz","nameLower":"dick dietz","rawValue":66,"displayValue":"66"},{"name":"Eli Marrero","nameLower":"eli marrero","rawValue":66,"displayValue":"66"},{"name":"Sammy White","nameLower":"sammy white","rawValue":66,"displayValue":"66"},{"name":"Victor Caratini","nameLower":"victor caratini","rawValue":65,"displayValue":"65"},{"name":"Manny Sanguillén","nameLower":"manny sanguillén","rawValue":65,"displayValue":"65"},{"name":"Kelly Stinnett","nameLower":"kelly stinnett","rawValue":65,"displayValue":"65"},{"name":"Butch Wynegar","nameLower":"butch wynegar","rawValue":65,"displayValue":"65"},{"name":"Yainer Diaz","nameLower":"yainer diaz","rawValue":64,"displayValue":"64"},{"name":"Brian Harper","nameLower":"brian harper","rawValue":63,"displayValue":"63"},{"name":"Les Moss","nameLower":"les moss","rawValue":63,"displayValue":"63"},{"name":"Jeff Newman","nameLower":"jeff newman","rawValue":63,"displayValue":"63"},{"name":"Derek Norris","nameLower":"derek norris","rawValue":63,"displayValue":"63"},{"name":"Scott Servais","nameLower":"scott servais","rawValue":63,"displayValue":"63"},{"name":"Dick Brown","nameLower":"dick brown","rawValue":62,"displayValue":"62"},{"name":"Elrod Hendricks","nameLower":"elrod hendricks","rawValue":62,"displayValue":"62"},{"name":"Ray Fosse","nameLower":"ray fosse","rawValue":61,"displayValue":"61"},{"name":"Shanty Hogan","nameLower":"shanty hogan","rawValue":61,"displayValue":"61"},{"name":"Jeff Reed","nameLower":"jeff reed","rawValue":61,"displayValue":"61"},{"name":"Aaron Robinson","nameLower":"aaron robinson","rawValue":61,"displayValue":"61"},{"name":"Bill Schroeder","nameLower":"bill schroeder","rawValue":61,"displayValue":"61"},{"name":"Rick Cerone","nameLower":"rick cerone","rawValue":59,"displayValue":"59"},{"name":"Wally Schang","nameLower":"wally schang","rawValue":59,"displayValue":"59"},{"name":"Buck Martinez","nameLower":"buck martinez","rawValue":58,"displayValue":"58"},{"name":"Devin Mesoraco","nameLower":"devin mesoraco","rawValue":58,"displayValue":"58"},{"name":"Doug Mirabelli","nameLower":"doug mirabelli","rawValue":58,"displayValue":"58"},{"name":"Carl Sawatski","nameLower":"carl sawatski","rawValue":58,"displayValue":"58"},{"name":"Hal Smith","nameLower":"hal smith","rawValue":58,"displayValue":"58"},{"name":"Francisco Alvarez","nameLower":"francisco alvarez","rawValue":57,"displayValue":"57"},{"name":"Harry Danning","nameLower":"harry danning","rawValue":57,"displayValue":"57"},{"name":"Barry Foote","nameLower":"barry foote","rawValue":57,"displayValue":"57"},{"name":"Logan O'Hoppe","nameLower":"logan o'hoppe","rawValue":57,"displayValue":"57"},{"name":"Tom Lampkin","nameLower":"tom lampkin","rawValue":56,"displayValue":"56"},{"name":"Biz Mackey","nameLower":"biz mackey","rawValue":56,"displayValue":"56"}]
+  }
+};
+
+const SPECIAL_STATS = [
+  { key:'catchers_hr_career', label:'Catcher HR — All-Time (50%+ games at C)', static:true }
+];
 let chain = [];
 let lastPick = [null, null];
 let usedNames = new Set();
@@ -442,11 +459,22 @@ async function publish(state) {
 // ── Stats setup ────────────────────────────────────────────────────────────────
 function updateStats() {
   const g = document.getElementById('groupSel').value;
-  const list = g === 'hitting' ? HITTING_STATS : PITCHING_STATS;
   const isCareer = document.getElementById('seasonSel').value === 'career';
   const sel = document.getElementById('statSel');
-  sel.innerHTML = list.filter(s => !isCareer || s.careerOk)
-    .map(s => `<option value="${list.indexOf(s)}">${s.label}</option>`).join('');
+  const seasonRow = document.getElementById('seasonSel').closest('.form-group');
+  const poolRow   = document.getElementById('poolGroup');
+
+  if (g === 'special') {
+    sel.innerHTML = SPECIAL_STATS.map((s, i) => `<option value="special_${i}">${s.label}</option>`).join('');
+    seasonRow.style.display = 'none';
+    poolRow.style.display   = 'none';
+  } else {
+    const list = g === 'hitting' ? HITTING_STATS : PITCHING_STATS;
+    sel.innerHTML = list.filter(s => !isCareer || s.careerOk)
+      .map(s => `<option value="${list.indexOf(s)}">${s.label}</option>`).join('');
+    seasonRow.style.display = '';
+    poolRow.style.display   = isCareer ? 'none' : '';
+  }
 }
 function onSeasonChange() {
   document.getElementById('poolGroup').style.display =
@@ -467,6 +495,13 @@ function limitSuffix() { return statOrder() === 'asc' ? 'or higher' : 'or lower'
 const CATCHER_EXCLUSIONS = new Set([123406,400121,408045,119804,119986,117747,124495,113959,118305]);
 
 async function fetchPlayers(group, sd, season, pool) {
+  // Static dataset — return immediately, no API call needed
+  if (sd.static) {
+    const dataset = STATIC_DATASETS[sd.key];
+    if (!dataset) throw new Error('Dataset not found: ' + sd.key);
+    return dataset.players;
+  }
+
   const isCareer = season === 'career';
   const order = sd.order || 'desc';
   const playerPool = isCareer ? 'ALL' : (sd.pool || pool || 'ALL');
@@ -478,31 +513,29 @@ async function fetchPlayers(group, sd, season, pool) {
   const d = await r.json();
   const splits = d.stats?.[0]?.splits;
   if (!splits?.length) throw new Error('No data returned.');
-  return splits
-    .filter(s => {
-      // If filtering catchers, exclude players who spent majority of career elsewhere
-      const pos = document.getElementById('groupSel')?.value || '';
-      if (pos.includes('|C') && isCareer) {
-        return !CATCHER_EXCLUSIONS.has(s.player?.id);
-      }
-      return true;
-    })
-    .map(s => ({
-      name: s.player?.fullName || '?',
-      nameLower: (s.player?.fullName || '').toLowerCase(),
-      rawValue: sd.fmt(s.stat[sd.key]),
-      displayValue: sd.disp(s.stat[sd.key]),
-      playerId: s.player?.id,
-    }));
+  return splits.map(s => ({
+    name: s.player?.fullName || '?',
+    nameLower: (s.player?.fullName || '').toLowerCase(),
+    rawValue: sd.fmt(s.stat[sd.key]),
+    displayValue: sd.disp(s.stat[sd.key]),
+    playerId: s.player?.id,
+  }));
 }
 
 async function startGame() {
   const group = document.getElementById('groupSel').value;
-  const list = group === 'hitting' ? HITTING_STATS : PITCHING_STATS;
-  const idx = parseInt(document.getElementById('statSel').value);
-  statDef = list[idx];
+  const statSelVal = document.getElementById('statSel').value;
   const season = document.getElementById('seasonSel').value;
   const pool = document.getElementById('poolSel').value;
+
+  // Resolve statDef
+  if (group === 'special') {
+    const specialIdx = parseInt(statSelVal.replace('special_', ''));
+    statDef = SPECIAL_STATS[specialIdx];
+  } else {
+    const list = group === 'hitting' ? HITTING_STATS : PITCHING_STATS;
+    statDef = list[parseInt(statSelVal)];
+  }
 
   p1Name = document.getElementById('p1Name').value.trim() || 'Player 1';
   p2Name = document.getElementById('p2Name').value.trim() || 'Player 2';
@@ -516,9 +549,18 @@ async function startGame() {
     allPlayers = await fetchPlayers(group, statDef, season, pool);
     chain = []; lastPick = [null, null]; usedNames = new Set(); currentTurn = 0; picks = [0,0]; strikes = [0,0];
 
-    const seasonLabel = season === 'career' ? 'All-Time (Career)' : season;
-    document.getElementById('gameTitle').textContent = `LIMBO — ${statDef.label}`;
-    document.getElementById('gameMeta').textContent = `${seasonLabel} · ${group === 'hitting' ? 'Hitters' : 'Pitchers'}`;
+    // Game title and meta
+    let seasonLabel, groupLabel;
+    if (statDef.static) {
+      const ds = STATIC_DATASETS[statDef.key];
+      seasonLabel = ds.note || '';
+      groupLabel = '';
+    } else {
+      seasonLabel = season === 'career' ? 'All-Time (Career)' : season;
+      groupLabel = ' · ' + (group === 'hitting' ? 'Hitters' : 'Pitchers');
+    }
+    document.getElementById('gameTitle').textContent = `LIMBO — ${statDef.static ? STATIC_DATASETS[statDef.key].statLabel : statDef.label}`;
+    document.getElementById('gameMeta').textContent = `${seasonLabel}${groupLabel}`;
     document.getElementById('p1CardName').textContent = p1Name;
     document.getElementById('p2CardName').textContent = p2Name;
 
@@ -705,7 +747,7 @@ function pushState(status, extra = {}) {
   const state = {
     status,
     p1Name, p2Name,
-    statLabel: statDef.label,
+    statLabel: statDef.static ? STATIC_DATASETS[statDef.key].statLabel : statDef.label,
     gameMeta: document.getElementById('gameMeta').textContent,
     chain: chain.map(e => ({ ...e })),
     lastPick: [lastPick[0] ? {...lastPick[0]} : null, lastPick[1] ? {...lastPick[1]} : null],
