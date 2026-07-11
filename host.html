@@ -142,6 +142,8 @@ select option.alltime{color:#e63946;}
 .chain-row.p2 .cr-val{color:#3b82f6;}
 .chain-empty-msg{font-size:11px;color:#2a2a2a;text-align:center;padding:20px;letter-spacing:1px;text-transform:uppercase;}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -151,14 +153,14 @@ select option.alltime{color:#e63946;}
     <div class="nav-badge">HOST CONTROL</div>
   </div>
   <div class="nav-right">
-    <span id="ntfyStatus" class="ntfy-status idle">ntfy: idle</span>
+    <span id="connStatus" class="ntfy-status idle">○ connecting…</span>
     <a class="display-link" id="displayLink" href="display.html" target="_blank">Open Display ↗</a>
   </div>
 </nav>
 
 <!-- TOPIC BAR -->
 <div class="topic-bar">
-  <label>ntfy Topic</label>
+  <label>Game Topic</label>
   <input type="text" id="topicInput" placeholder="e.g. jomboy-limbo-2026" autocomplete="off" spellcheck="false"/>
   <div class="obs-url-wrap">
     <span class="obs-url-label">Display URL →</span>
@@ -397,10 +399,32 @@ let currentTurn = 0, picks = [0,0], strikes = [0,0];
 let p1Name = 'Player 1', p2Name = 'Player 2';
 let acIdx = -1;
 
-// ── Topic / ntfy ───────────────────────────────────────────────────────────────
+// ── Firebase ──────────────────────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBG2PS2muH4i27HefuLeBnZWW-TZ5dkMCw",
+  authDomain: "pinpoint-abf21.firebaseapp.com",
+  databaseURL: "https://pinpoint-abf21-default-rtdb.firebaseio.com",
+  projectId: "pinpoint-abf21",
+  storageBucket: "pinpoint-abf21.firebasestorage.app",
+  messagingSenderId: "947703489099",
+  appId: "1:947703489099:web:c4ed96cfbaeeda594463ce"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const _db = firebase.database();
+
+function fbKey(topic) { return topic.trim().replace(/[.#$\[\]\/\s]+/g, '-'); }
+function fbRef(topic) { return _db.ref('limbo/' + fbKey(topic) + '/state'); }
+
+_db.ref('.info/connected').on('value', s => {
+  const el = document.getElementById('connStatus');
+  if (!el) return;
+  el.textContent = s.val() ? '● Live' : '○ Offline';
+  el.style.color  = s.val() ? '#22c55e' : '#e63946';
+});
+
+// ── Topic / URL ───────────────────────────────────────────────────────────────
 const topicInput = document.getElementById('topicInput');
 const obsUrlEl   = document.getElementById('obsUrl');
-const statusEl   = document.getElementById('ntfyStatus');
 
 topicInput.value = localStorage.getItem('limbo-topic') || '';
 updateObsUrl();
@@ -436,24 +460,9 @@ function copyUrl() {
   });
 }
 
-async function publish(state) {
-  const topic = getTopic();
-  if (!topic) return;
-  statusEl.textContent = 'ntfy: sending…'; statusEl.className = 'ntfy-status idle';
-  try {
-    const r = await fetch('https://ntfy.sh/' + topic, {
-      method: 'POST',
-      body: JSON.stringify(state)
-    });
-    if (r.ok) {
-      statusEl.textContent = 'ntfy: sent ✓'; statusEl.className = 'ntfy-status ok';
-      setTimeout(() => { statusEl.textContent = 'ntfy: idle'; statusEl.className = 'ntfy-status idle'; }, 2000);
-    } else {
-      statusEl.textContent = 'ntfy: error ' + r.status; statusEl.className = 'ntfy-status err';
-    }
-  } catch(e) {
-    statusEl.textContent = 'ntfy: offline'; statusEl.className = 'ntfy-status err';
-  }
+function publish(state) {
+  const topic = getTopic(); if (!topic) return;
+  fbRef(topic).set(state).catch(e => console.error('Firebase write error:', e));
 }
 
 // ── Stats setup ────────────────────────────────────────────────────────────────
@@ -742,7 +751,7 @@ function renderChainLog() {
   }).join('');
 }
 
-// ── State push to ntfy.sh ──────────────────────────────────────────────────────
+// ── State push to Firebase ─────────────────────────────────────────────────────
 function pushState(status, extra = {}) {
   const state = {
     status,
