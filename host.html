@@ -756,6 +756,7 @@ function pushState(status, extra = {}) {
   const state = {
     status,
     p1Name, p2Name,
+    names: [p1Name, p2Name],  // new display expects names[]
     statLabel: statDef.static ? STATIC_DATASETS[statDef.key].statLabel : statDef.label,
     gameMeta: document.getElementById('gameMeta').textContent,
     chain: chain.map(e => ({ ...e })),
