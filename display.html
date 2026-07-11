@@ -201,6 +201,8 @@ body{background:#080808;color:#fff;font-family:'DM Mono',monospace;display:flex;
 }
 @keyframes bustFlash{0%{opacity:1;}100%{opacity:0;}}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -446,36 +448,29 @@ function handleMessage(state) {
   applyState(state);
 }
 
-// ── ntfy.sh connection ─────────────────────────────────────────────────────────
+// ── Firebase connection ────────────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBG2PS2muH4i27HefuLeBnZWW-TZ5dkMCw",
+  authDomain: "pinpoint-abf21.firebaseapp.com",
+  databaseURL: "https://pinpoint-abf21-default-rtdb.firebaseio.com",
+  projectId: "pinpoint-abf21",
+  storageBucket: "pinpoint-abf21.firebasestorage.app",
+  messagingSenderId: "947703489099",
+  appId: "1:947703489099:web:c4ed96cfbaeeda594463ce"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const _db = firebase.database();
+function fbKey(t) { return t.trim().replace(/[.#$\[\]\/\s]+/g, '-'); }
+
 if (!topic) {
   document.getElementById('topStat').textContent = 'NO TOPIC — ADD ?topic= TO URL';
 } else {
-  // On load: poll last 10 minutes of messages so OBS reconnects get current state
-  fetch('https://ntfy.sh/' + topic + '/json?poll=1&since=10m')
-    .then(r => r.text())
-    .then(text => {
-      const lines = text.trim().split('\n').filter(Boolean);
-      if (!lines.length) return;
-      // Use the last (most recent) message
-      try {
-        const msg = JSON.parse(lines[lines.length - 1]);
-        if (msg.message) handleMessage(JSON.parse(msg.message));
-      } catch {}
-    })
-    .catch(() => {});
-
-  // Live updates via Server-Sent Events with auto-reconnect
-  function connectSSE(){
-    const es = new EventSource('https://ntfy.sh/' + topic + '/sse');
-    es.addEventListener('message', e => {
-      try {
-        const msg = JSON.parse(e.data);
-        if (msg.message) handleMessage(JSON.parse(msg.message));
-      } catch {}
-    });
-    es.addEventListener('error', () => { es.close(); setTimeout(connectSSE, 3000); });
-  }
-  connectSSE();
+  // .on('value') fires immediately with current state (great for OBS reconnects)
+  // and again on every host update — no polling needed
+  _db.ref('limbo/' + fbKey(topic) + '/state').on('value', snap => {
+    const state = snap.val();
+    handleMessage(state || { status: 'reset' });
+  });
 }
 </script>
 </body>
