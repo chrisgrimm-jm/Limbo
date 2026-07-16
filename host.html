@@ -326,57 +326,57 @@ const MLB = 'https://statsapi.mlb.com/api/v1';
 const DISPLAY_BASE = 'https://chrisgrimm-jm.github.io/Diminishing-Returns/display.html';
 
 const HITTING_STATS = [
-  { key:'homeRuns',              label:'Home Runs',              type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'rbi',                   label:'RBI',                    type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'hits',                  label:'Hits',                   type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'runs',                  label:'Runs Scored',            type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'stolenBases',           label:'Stolen Bases',           type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'strikeOuts',            label:'Strikeouts (Batter)',    type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'baseOnBalls',           label:'Walks',                  type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'doubles',               label:'Doubles',                type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'triples',               label:'Triples',                type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'totalBases',            label:'Total Bases',            type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'plateAppearances',      label:'Plate Appearances',      type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'intentionalWalks',      label:'Intentional Walks',      type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'hitByPitch',            label:'Hit by Pitch',           type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'groundIntoDoublePlay',  label:'Grounded Into DP',       type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'caughtStealing',        label:'Caught Stealing',        type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'numberOfPitches',       label:'Pitches Seen',           type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'leftOnBase',            label:'Left on Base',           type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'atBats',                label:'At Bats',                type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'sacFlies',              label:'Sac Flies',              type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'avg',                   label:'Batting Average',        type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
-  { key:'ops',                   label:'OPS',                    type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
-  { key:'slg',                   label:'Slugging %',             type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
-  { key:'obp',                   label:'On-Base %',              type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
-  { key:'babip',                 label:'BABIP',                  type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+  { key:'homeRuns',              label:'Home Runs',              type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'rbi',                   label:'RBI',                    type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'hits',                  label:'Hits',                   type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'runs',                  label:'Runs Scored',            type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'stolenBases',           label:'Stolen Bases',           type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'strikeOuts',            label:'Strikeouts (Batter)',    type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'baseOnBalls',           label:'Walks',                  type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'doubles',               label:'Doubles',                type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'triples',               label:'Triples',                type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'totalBases',            label:'Total Bases',            type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'plateAppearances',      label:'Plate Appearances',      type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'intentionalWalks',      label:'Intentional Walks',      type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'hitByPitch',            label:'Hit by Pitch',           type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'groundIntoDoublePlay',  label:'Grounded Into DP',       type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'caughtStealing',        label:'Caught Stealing',        type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'numberOfPitches',       label:'Pitches Seen',           type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'leftOnBase',            label:'Left on Base',           type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'atBats',                label:'At Bats',                type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'sacFlies',              label:'Sac Flies',              type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'avg',                   label:'Batting Average',        type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+  { key:'ops',                   label:'OPS',                    type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+  { key:'slg',                   label:'Slugging %',             type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+  { key:'obp',                   label:'On-Base %',              type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
+  { key:'babip',                 label:'BABIP',                  type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(3), order:'desc', pool:'Qualified' },
 ];
 
 const PITCHING_STATS = [
-  { key:'strikeOuts',          label:'Strikeouts',           type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'wins',                label:'Wins',                 type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'saves',               label:'Saves',                type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'homeRuns',            label:'HR Allowed',           type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'baseOnBalls',         label:'Walks Allowed',        type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'hits',                label:'Hits Allowed',         type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'gamesStarted',        label:'Games Started',        type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'losses',              label:'Losses',               type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'inningsPitched',      label:'Innings Pitched',      type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toLocaleString() },
-  { key:'battersFaced',        label:'Batters Faced',        type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'earnedRuns',          label:'Earned Runs',          type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'holds',               label:'Holds',                type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'blownSaves',          label:'Blown Saves',          type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'completeGames',       label:'Complete Games',       type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'shutouts',            label:'Shutouts',             type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'wildPitches',         label:'Wild Pitches',         type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'hitBatsmen',          label:'Hit Batters (HBP)',    type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'gamesPitched',        label:'Games Pitched',        type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
-  { key:'era',                 label:'ERA',                  type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
-  { key:'whip',                label:'WHIP',                 type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
-  { key:'strikeoutsPer9Inn',   label:'K/9',                  type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'desc', pool:'Qualified' },
-  { key:'walksPer9Inn',        label:'BB/9',                 type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
-  { key:'strikeoutWalkRatio',  label:'K/BB Ratio',           type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'desc', pool:'Qualified' },
-  { key:'hitsPer9Inn',         label:'H/9',                  type:'season', careerOk:true,  fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
+  { key:'strikeOuts',          label:'Strikeouts',           type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'wins',                label:'Wins',                 type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'saves',               label:'Saves',                type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'homeRuns',            label:'HR Allowed',           type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'baseOnBalls',         label:'Walks Allowed',        type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'hits',                label:'Hits Allowed',         type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'gamesStarted',        label:'Games Started',        type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'losses',              label:'Losses',               type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'inningsPitched',      label:'Innings Pitched',      type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toLocaleString() },
+  { key:'battersFaced',        label:'Batters Faced',        type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'earnedRuns',          label:'Earned Runs',          type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'holds',               label:'Holds',                type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'blownSaves',          label:'Blown Saves',          type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'completeGames',       label:'Complete Games',       type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'shutouts',            label:'Shutouts',             type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'wildPitches',         label:'Wild Pitches',         type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'hitBatsmen',          label:'Hit Batters (HBP)',    type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'gamesPitched',        label:'Games Pitched',        type:'season', fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
+  { key:'era',                 label:'ERA',                  type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
+  { key:'whip',                label:'WHIP',                 type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
+  { key:'strikeoutsPer9Inn',   label:'K/9',                  type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'desc', pool:'Qualified' },
+  { key:'walksPer9Inn',        label:'BB/9',                 type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
+  { key:'strikeoutWalkRatio',  label:'K/BB Ratio',           type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'desc', pool:'Qualified' },
+  { key:'hitsPer9Inn',         label:'H/9',                  type:'season', fmt:v=>parseFloat(v), disp:v=>parseFloat(v).toFixed(2), order:'asc', pool:'Qualified' },
 ];
 
 // ── Static curated datasets (sourced from Baseball Reference with custom qualifiers) ──
@@ -398,6 +398,7 @@ let usedNames = new Set();
 let currentTurn = 0, picks = [0,0], strikes = [0,0];
 let p1Name = 'Player 1', p2Name = 'Player 2';
 let acIdx = -1;
+let allPlayers = [], statDef = null;
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
@@ -479,7 +480,7 @@ function updateStats() {
     poolRow.style.display   = 'none';
   } else {
     const list = g === 'hitting' ? HITTING_STATS : PITCHING_STATS;
-    sel.innerHTML = list.filter(s => !isCareer || s.careerOk)
+    sel.innerHTML = list
       .map(s => `<option value="${list.indexOf(s)}">${s.label}</option>`).join('');
     seasonRow.style.display = '';
     poolRow.style.display   = isCareer ? 'none' : '';
@@ -498,10 +499,6 @@ function mustBeLower(prev, next) {
 }
 function dirWord() { return statOrder() === 'asc' ? 'higher' : 'lower'; }
 function limitSuffix() { return statOrder() === 'asc' ? 'or higher' : 'or lower'; }
-
-// Players who appear in position=C stats but played <50% of career games at catcher.
-// Verified via MLB fielding API — excludes Joe Torre, Victor Martinez, Joe Mauer, etc.
-const CATCHER_EXCLUSIONS = new Set([123406,400121,408045,119804,119986,117747,124495,113959,118305]);
 
 async function fetchPlayers(group, sd, season, pool) {
   // Static dataset — return immediately, no API call needed
