@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Limbo — Host</title>
+<title>Diminishing Returns — Host</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -149,7 +149,7 @@ select option.alltime{color:#e63946;}
 
 <nav>
   <div style="display:flex;align-items:center;gap:14px;">
-    <div class="nav-title">LIMBO <span>HOST</span></div>
+    <div class="nav-title">DIMINISHING RETURNS <span>HOST</span></div>
     <div class="nav-badge">HOST CONTROL</div>
   </div>
   <div class="nav-right">
@@ -161,7 +161,7 @@ select option.alltime{color:#e63946;}
 <!-- TOPIC BAR -->
 <div class="topic-bar">
   <label>Game Topic</label>
-  <input type="text" id="topicInput" placeholder="e.g. jomboy-limbo-2026" autocomplete="off" spellcheck="false"/>
+  <input type="text" id="topicInput" placeholder="e.g. jomboy-diminishing-returns-2026" autocomplete="off" spellcheck="false"/>
   <div class="obs-url-wrap">
     <span class="obs-url-label">Display URL →</span>
     <div class="obs-url-text empty" id="obsUrl">Enter a topic to generate URL</div>
@@ -262,7 +262,7 @@ select option.alltime{color:#e63946;}
 <div id="gameScreen">
   <div class="game-header">
     <div>
-      <div class="game-title" id="gameTitle">LIMBO</div>
+      <div class="game-title" id="gameTitle">DIMINISHING RETURNS</div>
       <div class="game-meta" id="gameMeta"></div>
     </div>
     <div class="header-btns">
@@ -323,7 +323,7 @@ select option.alltime{color:#e63946;}
 
 <script>
 const MLB = 'https://statsapi.mlb.com/api/v1';
-const DISPLAY_BASE = 'https://chrisgrimm-jm.github.io/Limbo/display.html';
+const DISPLAY_BASE = 'https://chrisgrimm-jm.github.io/Diminishing-Returns/display.html';
 
 const HITTING_STATS = [
   { key:'homeRuns',              label:'Home Runs',              type:'season', careerOk:true,  fmt:v=>parseInt(v),   disp:v=>parseInt(v).toLocaleString() },
@@ -568,7 +568,7 @@ async function startGame() {
       seasonLabel = season === 'career' ? 'All-Time (Career)' : season;
       groupLabel = ' · ' + (group === 'hitting' ? 'Hitters' : 'Pitchers');
     }
-    document.getElementById('gameTitle').textContent = `LIMBO — ${statDef.static ? STATIC_DATASETS[statDef.key].statLabel : statDef.label}`;
+    document.getElementById('gameTitle').textContent = `DIMINISHING RETURNS — ${statDef.static ? STATIC_DATASETS[statDef.key].statLabel : statDef.label}`;
     document.getElementById('gameMeta').textContent = `${seasonLabel}${groupLabel}`;
     document.getElementById('p1CardName').textContent = p1Name;
     document.getElementById('p2CardName').textContent = p2Name;
